@@ -1,5 +1,11 @@
 import axiosInstance from "./axiosInstance";
 
+export enum FilterStatus {
+  INCOMPLETE = 0,
+  COMPLETED = 1,
+  ALL = 2,
+}
+
 export interface Clip {
   id: string;
   title: string;
@@ -44,10 +50,10 @@ function mapRawToClip(raw: Record<string, unknown>, index: number): Clip {
   const createdAt = raw.createdAt ?? raw.created_at;
   return {
     id: String(raw.id ?? raw.clip_id ?? `clip-${index}`),
-    title: String(raw.title ?? raw.name ?? ""),
+    title: String(raw.title ?? raw.name ?? `Clip ${index + 1}`),
     duration: parseDuration(raw),
-    thumbnail: String(raw.thumbnail ?? ""),
-    videoUrl: String(raw.videoUrl ?? raw.video_url ?? ""),
+    thumbnail: String(raw.thumbnail_url ?? raw.thumbnail ?? ""),
+    videoUrl: String(raw.clip_url ?? raw.videoUrl ?? raw.video_url ?? ""),
     createdAt:
       createdAt instanceof Date
         ? createdAt

@@ -2,9 +2,10 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
-import { Menu, X, Upload, LayoutDashboard, User, Sparkles } from "lucide-react";
+import { Menu, X, LayoutDashboard, User } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Logo from "@/assets/Logo.svg";
 
 export function Navbar() {
   const { isAuthenticated, logout } = useAuth();
@@ -14,7 +15,6 @@ export function Navbar() {
   const navLinks = isAuthenticated
     ? [
         { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-        { href: "/upload", label: "Upload", icon: Upload },
         { href: "/profile", label: "Profile", icon: User },
       ]
     : [];
@@ -26,12 +26,7 @@ export function Navbar() {
       <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-lg gradient-bg flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-primary-foreground" />
-          </div>
-          <span className="text-xl font-bold">
-            Klipper<span className="gradient-text">AI</span>
-          </span>
+          <img src={Logo} alt="KlipperAI Logo" className="h-10 w-auto" />
         </Link>
 
         {/* Desktop Navigation */}

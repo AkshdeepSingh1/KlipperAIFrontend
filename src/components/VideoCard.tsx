@@ -13,16 +13,10 @@ interface VideoCardProps {
 }
 
 export function VideoCard({ video, statusLabel }: VideoCardProps) {
-  return (
-    <Link
-      to={`/video/${video.id}/clips`}
-      state={{
-        title: video.title,
-        fromTab: statusLabel === "In Progress" ? "in-progress" : "my-videos",
-      }}
-      className="block"
-    >
-      <Card className="overflow-hidden card-shadow hover:shadow-lg transition-shadow duration-300 cursor-pointer">
+  const isClickable = video.status === "completed" && statusLabel !== "In Progress";
+  
+  const cardContent = (
+    <Card className={`overflow-hidden card-shadow transition-shadow duration-300 ${isClickable ? "hover:shadow-lg cursor-pointer" : "cursor-not-allowed opacity-80"}`}>
         <div className="relative group">
           <img
             src={video.thumbnail}
@@ -53,13 +47,15 @@ export function VideoCard({ video, statusLabel }: VideoCardProps) {
                   : video.status}
             </span>
           </div>
-          <Button
-            variant="glass"
-            size="icon"
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            <Play className="w-5 h-5" />
-          </Button>
+          {isClickable && (
+            <Button
+              variant="glass"
+              size="icon"
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <Play className="w-5 h-5" />
+            </Button>
+          )}
         </div>
 
         <div className="p-4">
@@ -75,6 +71,22 @@ export function VideoCard({ video, statusLabel }: VideoCardProps) {
           </div>
         </div>
       </Card>
-    </Link>
   );
+
+  if (isClickable) {
+    return (
+      <Link
+        to={`/video/${video.id}/clips`}
+        state={{
+          title: video.title,
+          fromTab: "my-videos",
+        }}
+        className="block"
+      >
+        {cardContent}
+      </Link>
+    );
+  }
+
+  return cardContent;
 }

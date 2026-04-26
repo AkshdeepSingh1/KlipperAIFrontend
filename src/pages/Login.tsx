@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { t } from "@/i18n";
+import Logo from "@/assets/Logo.svg";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -48,13 +49,7 @@ export default function Login() {
           className="w-full max-w-md"
         >
           <Link to="/" className="flex items-center gap-2 mb-8">
-            <div className="w-8 h-8 rounded-lg gradient-bg flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <span className="text-xl font-bold">
-              {t("login.logoTextPrefix")}
-              <span className="gradient-text">{t("login.logoTextHighlight")}</span>
-            </span>
+            <img src={Logo} alt="AutoBot Logo" className="h-10 w-auto" />
           </Link>
 
           <h1 className="text-2xl font-bold mb-2">{t("login.title")}</h1>

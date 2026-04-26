@@ -10,6 +10,9 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
+import FeatureSelection from "./pages/FeatureSelection";
+import VideoManagement from "./pages/VideoManagement";
+import TextToVideo from "./pages/TextToVideo";
 import Upload from "./pages/Upload";
 import Profile from "./pages/Profile";
 import VideoClips from "./pages/VideoClips";
@@ -30,7 +33,9 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
-                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/dashboard" element={<FeatureSelection />} />
+                <Route path="/video-management" element={<VideoManagement />} />
+                <Route path="/text-to-video" element={<TextToVideo />} />
                 <Route path="/upload" element={<Upload />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/video/:videoId/clips" element={<VideoClips />} />

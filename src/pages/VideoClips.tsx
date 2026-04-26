@@ -4,14 +4,14 @@ import { Layout } from "@/components/layout/Layout";
 import { getClipsFromVideoId, Clip } from "@/api/videoApi";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Play, Loader2, Film } from "lucide-react";
+import { ArrowLeft, Play, Loader2, Film, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { t } from "@/i18n";
 
-function ClipCard({ clip }: { clip: Clip }) {
+function ClipCard({ clip, onPlay }: { clip: Clip; onPlay: () => void }) {
   return (
-    <Card className="overflow-hidden group aspect-[9/16] max-h-[320px] bg-muted">
+    <Card className="overflow-hidden group aspect-[9/16] max-h-[320px] bg-muted cursor-pointer">
       <div className="relative w-full h-full">
         <img
           src={clip.thumbnail}
@@ -22,9 +22,10 @@ function ClipCard({ clip }: { clip: Clip }) {
         <Button
           variant="glass"
           size="icon"
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity w-10 h-10"
+          onClick={onPlay}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity w-12 h-12"
         >
-          <Play className="w-5 h-5" />
+          <Play className="w-6 h-6" />
         </Button>
         <div className="absolute bottom-0 left-0 right-0 p-3">
           <p className="text-sm font-medium line-clamp-2 mb-1">{clip.title}</p>
@@ -43,6 +44,7 @@ export default function VideoClips() {
   const [clips, setClips] = useState<Clip[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedClip, setSelectedClip] = useState<Clip | null>(null);
 
   const locationState = location.state as { title?: string; fromTab?: string } | null;
   const videoTitle = locationState?.title;
@@ -89,8 +91,8 @@ export default function VideoClips() {
             onClick={() =>
               navigate(
                 (location.state as { fromTab?: string } | null)?.fromTab === "in-progress"
-                  ? "/dashboard?tab=in-progress"
-                  : "/dashboard"
+                  ? "/video-management?tab=in-progress"
+                  : "/video-management"
               )
             }
           >
@@ -109,7 +111,7 @@ export default function VideoClips() {
             variant="ghost"
             size="icon"
             onClick={() =>
-              navigate(fromTab === "in-progress" ? "/dashboard?tab=in-progress" : "/dashboard")
+              navigate(fromTab === "in-progress" ? "/video-management?tab=in-progress" : "/video-management")
             }
             className="shrink-0"
           >
@@ -167,11 +169,46 @@ export default function VideoClips() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {clips.map((clip) => (
-              <ClipCard key={clip.id} clip={clip} />
+              <ClipCard key={clip.id} clip={clip} onPlay={() => setSelectedClip(clip)} />
             ))}
           </div>
         )}
       </div>
+
+      {selectedClip && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setSelectedClip(null)}
+        >
+          <div
+            className="relative w-full max-w-4xl mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSelectedClip(null)}
+              className="absolute -top-12 right-0 text-white hover:bg-white/20"
+            >
+              <X className="w-6 h-6" />
+            </Button>
+            <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+              <video
+                src={selectedClip.videoUrl}
+                controls
+                autoPlay
+                className="w-full h-full"
+              >
+                Your browser does not support the video tag.
+              </video>
+            </div>
+            <div className="mt-4 text-white">
+              <h3 className="text-lg font-semibold">{selectedClip.title}</h3>
+              <p className="text-sm text-white/70">{selectedClip.duration}</p>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }

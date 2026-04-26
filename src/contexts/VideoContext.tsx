@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from "react";
 import axiosInstance from "@/api/axiosInstance";
+import { FilterStatus } from "@/api/videoApi";
 
 export interface Short {
   id: string;
@@ -16,7 +17,7 @@ export interface Video {
   thumbnail: string;
   duration: string;
   uploadedAt: Date;
-  status: "processing" | "completed" | "failed";
+  status: "pending" | "processing" | "completed" | "failed";
   shorts: Short[];
 }
 
@@ -24,7 +25,7 @@ interface VideoContextType {
   videos: Video[];
   isLoadingVideos: boolean;
   fetchError: string | null;
-  fetchVideos: (isCompleted: boolean) => Promise<void>;
+  fetchVideos: (filterStatus: FilterStatus) => Promise<void>;
   addVideo: (video: Video) => void;
   updateVideo: (id: string, updates: Partial<Video>) => void;
   deleteVideo: (id: string) => void;
@@ -79,8 +80,10 @@ function mapApiVideoToVideo(raw: Record<string, unknown>): Video {
     videoUrl: String(s.videoUrl ?? s.video_url ?? ""),
     createdAt: parseUtcDate(s.created_at ?? s.createdAt ?? Date.now()),
   }));
-  const statusRaw = String(raw.status ?? "completed").toLowerCase();
-  const status = (["processing", "completed", "failed"].includes(statusRaw) ? statusRaw : "completed") as Video["status"];
+  const statusRaw = String(raw.processing_status ?? raw.status ?? "completed").toLowerCase();
+  const status = (["processing", "completed", "failed", "pending"].includes(statusRaw) 
+    ? (statusRaw === "pending" ? "processing" : statusRaw) 
+    : "completed") as Video["status"];
   return {
     id: String(raw.id ?? raw.video_id ?? ""),
     title: String(raw.title ?? raw.name ?? ""),
@@ -97,12 +100,12 @@ export function VideoProvider({ children }: { children: ReactNode }) {
   const [isLoadingVideos, setIsLoadingVideos] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
-  const fetchVideos = useCallback(async (isCompleted: boolean) => {
+  const fetchVideos = useCallback(async (filterStatus: FilterStatus) => {
     setIsLoadingVideos(true);
     setFetchError(null);
     try {
       const response = await axiosInstance.get("/videoInputOutput/get-user-videos", {
-        params: { isCompleted },
+        params: { filterStatus },
         headers: { "Content-Type": "application/json" },
       });
       const data = response.data;

@@ -15,6 +15,13 @@ export interface Clip {
   createdAt: Date;
 }
 
+export interface RenderItem {
+  url: string;
+  jobId: number;
+  contentTitle: string;
+  scheduledDate: string;
+}
+
 function parseDuration(raw: Record<string, unknown>): string {
   const sec =
     raw.duration_sec ??
@@ -71,4 +78,66 @@ export async function getClipsFromVideoId(videoId: string): Promise<Clip[]> {
     ? data
     : data?.clips ?? data?.data ?? [];
   return (rawList as Record<string, unknown>[]).map(mapRawToClip);
+}
+
+export interface CreateContentRequestPayload {
+  title: string;
+  source_type: string;
+  prompt?: string;
+  user_script?: string;
+  voice_over_id: number;
+  render_format: string;
+  template_id: number;
+}
+
+export async function createContentRequest(
+  payload: CreateContentRequestPayload
+): Promise<Record<string, unknown>> {
+  const response = await axiosInstance.post(
+    "/textToContentGen/CreateRequest",
+    payload
+  );
+  return response.data;
+}
+
+export interface VideoTemplate {
+  id: number;
+  name: string;
+  description: string;
+  category: string;
+  video_url: string;
+  render_format: string;
+  default_music_url: string | null;
+  default_music_volume: string;
+  allow_music_override: boolean;
+  override_music_url: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function getVideoTemplates(): Promise<VideoTemplate[]> {
+  const response = await axiosInstance.get(
+    "/textToContentGen/videoTemplate/get"
+  );
+  return response.data;
+}
+
+export interface AudioTemplate {
+  id: number;
+  name: string;
+  category: string;
+  accent: string;
+  tone: string;
+  url: string;
+  sort_order: number;
+}
+
+export async function getAudioTemplates(): Promise<AudioTemplate[]> {
+  const response = await axiosInstance.get("/textToContentGen/getAudio");
+  return response.data;
+}
+
+export async function getLatestRenders(): Promise<RenderItem[]> {
+  const response = await axiosInstance.get("/textToContentGen/getLatestRenders");
+  return response.data;
 }

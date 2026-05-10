@@ -173,16 +173,16 @@ export function ScheduleCalendar({
                 "relative aspect-square p-1 text-sm font-medium rounded-lg transition-all",
                 "hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary",
                 isSelected &&
-                  "bg-primary text-primary-foreground hover:bg-primary/90",
+                "bg-primary text-primary-foreground hover:bg-primary/90",
                 today &&
-                  !isSelected &&
-                  "border-2 border-primary text-foreground",
+                !isSelected &&
+                "border-2 border-accent text-foreground",
                 !isCurrentMonth &&
-                  "text-muted-foreground/40 hover:bg-muted/50",
+                "text-muted-foreground/40 hover:bg-muted/50",
                 isCurrentMonth &&
-                  !isSelected &&
-                  !today &&
-                  "text-foreground"
+                !isSelected &&
+                !today &&
+                "text-foreground"
               )}
             >
               <span className="relative z-10">{date.getDate()}</span>

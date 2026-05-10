@@ -1,5 +1,12 @@
 import axiosInstance from "./axiosInstance";
 
+export enum ContentJobStatus {
+  SCHEDULED = "scheduled",
+  PROCESSING = "processing",
+  COMPLETED = "completed",
+  FAILED = "failed",
+}
+
 export enum FilterStatus {
   INCOMPLETE = 0,
   COMPLETED = 1,
@@ -20,6 +27,31 @@ export interface RenderItem {
   jobId: number;
   contentTitle: string;
   scheduledDate: string;
+}
+
+export interface ScheduledContent {
+  id: number;
+  title: string;
+  source_type: string;
+  scheduled_at_utc: string;
+  processing_status: string;
+  full_output_url?: string;
+  user_script?: string;
+  prompt?: string;
+}
+
+export interface DashboardStats {
+  scheduledThisMonth: number;
+  inProgress: number;
+  scheduledToday: number;
+}
+
+export interface MonthlyScheduleItem {
+  id: string;
+  date: string;
+  type: "ai" | "self";
+  title: string;
+  status: ContentJobStatus;
 }
 
 function parseDuration(raw: Record<string, unknown>): string {
@@ -139,5 +171,24 @@ export async function getAudioTemplates(): Promise<AudioTemplate[]> {
 
 export async function getLatestRenders(): Promise<RenderItem[]> {
   const response = await axiosInstance.get("/textToContentGen/getLatestRenders");
+  return response.data;
+}
+
+export async function getScheduledContent(date: string): Promise<ScheduledContent[]> {
+  const response = await axiosInstance.get("/textToContentGen/getScheduledContent", {
+    params: { date }
+  });
+  return response.data;
+}
+
+export async function getDashboardStats(): Promise<DashboardStats> {
+  const response = await axiosInstance.get("/textToContentGen/getDashboardStats");
+  return response.data;
+}
+
+export async function getMonthlySchedule(year: number, month: number): Promise<MonthlyScheduleItem[]> {
+  const response = await axiosInstance.get("/textToContentGen/getMonthlySchedule", {
+    params: { year, month }
+  });
   return response.data;
 }

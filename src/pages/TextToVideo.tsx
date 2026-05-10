@@ -21,7 +21,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ScheduleVideoDrawer } from "@/components/ScheduleVideoDrawer";
 import { ScheduleCalendar, ScheduledVideoItem } from "@/components/ScheduleCalendar";
 import { useEffect } from "react";
-import { getLatestRenders, RenderItem } from "@/api/videoApi";
+import { getLatestRenders, RenderItem, getScheduledContent, ScheduledContent, getDashboardStats, DashboardStats, getMonthlySchedule, MonthlyScheduleItem, ContentJobStatus } from "@/api/videoApi";
 
 interface ScheduledVideo {
   id: string;
@@ -139,10 +139,25 @@ export default function TextToVideo() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [scheduledVideos, setScheduledVideos] = useState<ScheduledVideoItem[]>(mockScheduledVideosData);
+  const [scheduledVideos, setScheduledVideos] = useState<ScheduledVideoItem[]>([]);
   const [recentRenders, setRecentRenders] = useState<RenderItem[]>([]);
   const [playingJobId, setPlayingJobId] = useState<number | null>(null);
   const [isFetchingRenders, setIsFetchingRenders] = useState(false);
+  const [dayTasks, setDayTasks] = useState<ScheduledContent[]>([]);
+  const [isFetchingDayTasks, setIsFetchingDayTasks] = useState(false);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await getDashboardStats();
+        setStats(data);
+      } catch (error) {
+        console.error("Failed to fetch dashboard stats:", error);
+      }
+    };
+    fetchStats();
+  }, []);
 
   useEffect(() => {
     const fetchRenders = async () => {
@@ -158,6 +173,50 @@ export default function TextToVideo() {
     };
     fetchRenders();
   }, []);
+
+  useEffect(() => {
+    const fetchDayTasks = async () => {
+      // Format date as YYYY-MM-DD in local time
+      const year = selectedDate.getFullYear();
+      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+      const day = String(selectedDate.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+      
+      setIsFetchingDayTasks(true);
+      try {
+        const tasks = await getScheduledContent(dateStr);
+        setDayTasks(tasks);
+      } catch (error) {
+        console.error("Failed to fetch day tasks:", error);
+      } finally {
+        setIsFetchingDayTasks(false);
+      }
+    };
+    fetchDayTasks();
+  }, [selectedDate]);
+
+  useEffect(() => {
+    const fetchMonthlySchedule = async () => {
+      const year = currentMonth.getFullYear();
+      const month = currentMonth.getMonth() + 1; // getMonth() is 0-indexed
+      try {
+        const data = await getMonthlySchedule(year, month);
+        // Map API response to ScheduledVideoItem format
+        const mapped: ScheduledVideoItem[] = data.map(item => ({
+          id: item.id,
+          date: new Date(item.date),
+          type: item.type,
+          title: item.title,
+          status: item.status === ContentJobStatus.COMPLETED ? "ready" : 
+                  item.status === ContentJobStatus.PROCESSING ? "generating" : "scheduled"
+        }));
+        setScheduledVideos(mapped);
+      } catch (error) {
+        console.error("Failed to fetch monthly schedule:", error);
+      }
+    };
+    fetchMonthlySchedule();
+  }, [currentMonth]);
 
   const videosForSelectedDate = useMemo(() => {
     return scheduledVideos.filter((video) => {
@@ -234,8 +293,7 @@ export default function TextToVideo() {
               <CalendarIcon className="w-5 h-5 text-muted-foreground" />
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-5xl font-bold">{scheduledCount.toString().padStart(2, '0')}</span>
-              <span className="text-sm text-muted-foreground">↗ +4 vs last week</span>
+              <span className="text-5xl font-bold">{(stats?.scheduledThisMonth ?? 0).toString().padStart(2, '0')}</span>
             </div>
           </Card>
 
@@ -247,8 +305,7 @@ export default function TextToVideo() {
               <Clock className="w-5 h-5 text-amber-500" />
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-5xl font-bold">{inProgressCount.toString().padStart(2, '0')}</span>
-              <span className="text-sm text-muted-foreground">↗ Render queue active</span>
+              <span className="text-5xl font-bold">{(stats?.inProgress ?? 0).toString().padStart(2, '0')}</span>
             </div>
           </Card>
 
@@ -260,7 +317,7 @@ export default function TextToVideo() {
               <CheckCircle2 className="w-5 h-5 text-green-500" />
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-5xl font-bold">{readyToPublishCount.toString().padStart(2, '0')}</span>
+              <span className="text-5xl font-bold">{(stats?.scheduledToday ?? 0).toString().padStart(2, '0')}</span>
             </div>
           </Card>
         </div>
@@ -289,10 +346,15 @@ export default function TextToVideo() {
             </div>
 
             <p className="text-sm text-muted-foreground mb-4">
-              {videosForSelectedDate.length} tasks
+              {dayTasks.length} tasks
             </p>
 
-            {videosForSelectedDate.length === 0 ? (
+            {isFetchingDayTasks ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-primary mb-2" />
+                <p className="text-sm text-muted-foreground">Updating day plan...</p>
+              </div>
+            ) : dayTasks.length === 0 ? (
               <div className="text-center py-12">
                 <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
                   <CalendarIcon className="w-6 h-6 text-muted-foreground" />
@@ -308,46 +370,60 @@ export default function TextToVideo() {
               </div>
             ) : (
               <div className="space-y-4">
-                {videosForSelectedDate.map((video) => (
+                {dayTasks.map((task) => (
                   <motion.div
-                    key={video.id}
+                    key={task.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="border rounded-lg p-4 hover:border-primary/50 transition-colors"
+                    className="border rounded-lg p-4 hover:border-primary/50 transition-colors bg-muted/30"
                   >
                     <div className="flex items-start gap-3">
-                      <div className="text-sm font-medium text-muted-foreground min-w-[3rem]">
-                        {video.time}
+                      <div className="text-sm font-medium text-muted-foreground min-w-[3.5rem]">
+                        {new Date(task.scheduled_at_utc).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-sm mb-2 line-clamp-2">
-                          {video.title}
-                        </h4>
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <h4 className="font-semibold text-sm line-clamp-2">
+                            {task.title}
+                          </h4>
+                          {task.full_output_url && (
+                             <Button 
+                               size="sm" 
+                               variant="ghost" 
+                               className="h-8 w-8 p-0 rounded-full hover:bg-primary/10 hover:text-primary"
+                               onClick={() => window.open(task.full_output_url, '_blank')}
+                               title="Watch Output"
+                             >
+                               <Play className="w-4 h-4" />
+                             </Button>
+                          )}
+                        </div>
                         <div className="flex flex-wrap gap-2 mb-3">
-                          <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-muted">
-                            <FileText className="w-3 h-3" />
-                            {video.type === 'ai' ? 'AI Prompt' : 'Script'}
+                          <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-medium uppercase tracking-tight">
+                            <FileText className="w-2.5 h-2.5" />
+                            {task.source_type === 'ai_prompt' ? 'AI' : 'Script'}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          {video.status === "ready" && (
-                            <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-green-500/20 text-green-400 font-medium">
-                              ● READY
+                          {task.processing_status === "completed" && (
+                            <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md bg-green-500/10 text-green-500 font-bold uppercase">
+                              ● Completed
                             </span>
                           )}
-                          {video.status === "generating" && (
-                            <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-amber-500/20 text-amber-400 font-medium">
-                              ● GENERATING
+                          {task.processing_status === "processing" && (
+                            <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-500 font-bold uppercase">
+                              <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                              Processing
                             </span>
                           )}
-                          {video.status === "scheduled" && (
-                            <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-muted font-medium">
-                              ● SCHEDULED
+                          {task.processing_status === "pending" && (
+                            <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-500 font-bold uppercase">
+                              ● Pending
                             </span>
                           )}
-                          {video.status === "generating" && (
-                            <span className="text-xs text-muted-foreground">
-                              ~1 min remaining
+                           {task.processing_status === "failed" && (
+                            <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md bg-red-500/10 text-red-500 font-bold uppercase">
+                              ● Failed
                             </span>
                           )}
                         </div>

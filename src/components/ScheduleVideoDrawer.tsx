@@ -315,6 +315,7 @@ export function ScheduleVideoDrawer({
                           mode="single"
                           selected={date}
                           onSelect={setDate}
+                          disabled={{ before: new Date(new Date().setHours(0, 0, 0, 0)) }}
                           className="rounded-xl border shadow-sm bg-card p-3"
                         />
                       </div>
@@ -421,7 +422,7 @@ export function ScheduleVideoDrawer({
                           {videoTemplates.map((template) => (
                             <button
                               key={template.id}
-                              onClick={() => setSelectedTemplate(template.id)}
+                              onClick={() => setSelectedTemplate(selectedTemplate === template.id ? null : template.id)}
                               onMouseEnter={() => handleVideoHover(template.id)}
                               onMouseLeave={() => handleVideoLeave(template.id)}
                               className={`relative group shrink-0 w-[160px] md:w-[180px] p-2 rounded-2xl border-2 transition-all text-left bg-card snap-start ${selectedTemplate === template.id
@@ -438,10 +439,7 @@ export function ScheduleVideoDrawer({
                                   loop
                                   playsInline
                                 />
-                                {selectedTemplate === template.id && (
-                                  <div className="absolute inset-0 border-[3px] border-primary rounded-xl pointer-events-none" />
-                                )}
-                                <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-background/80 backdrop-blur-md text-foreground flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-background/80 backdrop-blur-md text-foreground flex items-center justify-center shadow-sm transition-opacity duration-200">
                                   <div className={`w-[14px] h-[14px] rounded-full border-[1.5px] ${selectedTemplate === template.id ? 'border-primary bg-primary' : 'border-muted-foreground/50'}`}>
                                     {selectedTemplate === template.id && (
                                       <svg viewBox="0 0 24 24" fill="none" className="w-full h-full text-white p-[2px]">

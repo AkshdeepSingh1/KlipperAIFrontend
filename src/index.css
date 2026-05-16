@@ -267,3 +267,22 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 } */
+
+.ai-dot {
+  background: #5B7FFF;
+  box-shadow: 0 0 8px rgba(91,127,255,0.5);
+}
+
+.self-dot {
+  background: #A1AFC3;
+}
+
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient-shift {
+  animation: gradientShift 6s ease infinite;
+}

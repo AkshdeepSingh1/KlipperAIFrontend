@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -136,6 +136,7 @@ const mockRecentRenders: Render[] = [
 
 export default function TextToVideo() {
   const { isAuthenticated, isLoading } = useAuth();
+  const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -264,7 +265,12 @@ export default function TextToVideo() {
   return (
     <Layout showFooter={false}>
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: 60 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 260, damping: 22 }}
+          className="mb-8"
+        >
           <p className="text-sm text-primary mb-2 uppercase tracking-wide">
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })}
           </p>
@@ -282,9 +288,14 @@ export default function TextToVideo() {
               New Video
             </Button>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: 60 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 260, damping: 22, delay: 0.1 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
+        >
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-muted-foreground uppercase tracking-wide">
@@ -320,9 +331,14 @@ export default function TextToVideo() {
               <span className="text-5xl font-bold">{(stats?.scheduledToday ?? 0).toString().padStart(2, '0')}</span>
             </div>
           </Card>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-6 mb-8 items-start">
+        <motion.div
+          initial={{ opacity: 0, y: 60 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 260, damping: 22, delay: 0.2 }}
+          className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-6 mb-8 items-start"
+        >
           <Card className="p-6">
             <ScheduleCalendar
               scheduledVideos={scheduledVideos}
@@ -342,7 +358,6 @@ export default function TextToVideo() {
                   {selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                 </h3>
               </div>
-              <Sparkles className="w-5 h-5 text-primary" />
             </div>
 
             <p className="text-sm text-muted-foreground mb-4">
@@ -439,9 +454,13 @@ export default function TextToVideo() {
               </div>
             )}
           </Card>
-        </div>
+        </motion.div>
 
-        <div>
+        <motion.div
+          initial={{ opacity: 0, y: 60 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 260, damping: 22, delay: 0.3 }}
+        >
           <div className="flex items-center justify-between mb-6">
             <div>
               <p className="text-sm text-muted-foreground uppercase tracking-wide mb-1">
@@ -449,7 +468,7 @@ export default function TextToVideo() {
               </p>
               <h3 className="text-2xl font-bold">Recent renders</h3>
             </div>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => navigate("/library")}>
               View All
             </Button>
           </div>
@@ -543,7 +562,7 @@ export default function TextToVideo() {
                </div>
             )}
           </div>
-        </div>
+        </motion.div>
       </div>
 
       <ScheduleVideoDrawer

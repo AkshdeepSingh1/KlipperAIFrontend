@@ -26,11 +26,8 @@ const axiosInstance = axios.create({
 // --- Request interceptor: attach token ---
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Try both cookie names for compatibility
-    const token = getCookie("auth_token") || getCookie("authToken");
-    if (token && config.headers) {
-      setAuthHeader(config.headers, token);
-    }
+    // We rely on HTTP-only cookies (auth_token) set by the backend.
+    // The browser automatically attaches them to requests since withCredentials is true.
     return config;
   },
   (error) => Promise.reject(error),
@@ -43,10 +40,10 @@ let failedQueue: Array<{
   reject: (err: any) => void;
 }> = [];
 
-const processQueue = (error: any, token: string | null = null) => {
+const processQueue = (error: any) => {
   failedQueue.forEach((prom) => {
     if (error) prom.reject(error);
-    else if (token) prom.resolve(token);
+    else prom.resolve("done");
   });
   failedQueue = [];
 };
@@ -67,9 +64,7 @@ axiosInstance.interceptors.response.use(
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({
-            resolve: (token: string) => {
-              if (originalRequest.headers)
-                setAuthHeader(originalRequest.headers, token);
+            resolve: () => {
               resolve(axiosInstance(originalRequest));
             },
             reject,
@@ -80,30 +75,21 @@ axiosInstance.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // Try both cookie names for compatibility
-        const refreshToken =
-          getCookie("refresh_token") || getCookie("refreshToken");
-        if (!refreshToken) throw new Error("No refresh token found");
-
-        const { data } = await axios.post(
+        // We don't need to manually read or pass the refresh_token.
+        // Since withCredentials is true, the browser sends the refresh_token and device_id cookies automatically.
+        await axios.post(
           "/api/auth/refresh",
-          { refreshToken },
+          {},
           { withCredentials: true },
         );
 
-        const newToken = data?.authToken || data?.auth_token;
-        if (!newToken) throw new Error("Failed to get new token");
-
-        // Store token with underscore name to match backend
-        setCookie("auth_token", newToken, 1);
-        processQueue(null, newToken);
-
-        if (originalRequest.headers)
-          setAuthHeader(originalRequest.headers, newToken);
+        processQueue(null);
         return axiosInstance(originalRequest);
       } catch (refreshError) {
-        processQueue(refreshError, null);
+        processQueue(refreshError);
         console.error("Token refresh failed, logging out...");
+        // Clear local user data as session is truly dead
+        localStorage.removeItem("KlipperAI_user");
         window.location.href = "/login";
         return Promise.reject(refreshError);
       } finally {

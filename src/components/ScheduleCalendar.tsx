@@ -176,7 +176,7 @@ export function ScheduleCalendar({
                 "bg-primary text-primary-foreground hover:bg-primary/90",
                 today &&
                 !isSelected &&
-                "border-2 border-accent text-foreground",
+                "border-2 border-[#4F81ED] text-[#4F81ED]",
                 !isCurrentMonth &&
                 "text-muted-foreground/40 hover:bg-muted/50",
                 isCurrentMonth &&
@@ -191,7 +191,7 @@ export function ScheduleCalendar({
                   {aiVideos.slice(0, 3).map((_, i) => (
                     <div
                       key={`ai-${i}`}
-                      className="w-1.5 h-1.5 rounded-full bg-red-500"
+                      className="w-1.5 h-1.5 rounded-full ai-dot"
                     />
                   ))}
                   {selfVideos
@@ -199,7 +199,7 @@ export function ScheduleCalendar({
                     .map((_, i) => (
                       <div
                         key={`self-${i}`}
-                        className="w-1.5 h-1.5 rounded-full bg-green-500"
+                        className="w-1.5 h-1.5 rounded-full self-dot"
                       />
                     ))}
                 </div>
@@ -211,11 +211,11 @@ export function ScheduleCalendar({
 
       <div className="flex items-center gap-4 mt-6 text-sm">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-red-500"></div>
+          <div className="w-3 h-3 rounded-full ai-dot"></div>
           <span className="text-muted-foreground">AI Generated</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-green-500"></div>
+          <div className="w-3 h-3 rounded-full self-dot"></div>
           <span className="text-muted-foreground">Self Script</span>
         </div>
       </div>

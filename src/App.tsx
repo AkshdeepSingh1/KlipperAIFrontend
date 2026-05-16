@@ -16,6 +16,7 @@ import TextToVideo from "./pages/TextToVideo";
 import Upload from "./pages/Upload";
 import Profile from "./pages/Profile";
 import VideoClips from "./pages/VideoClips";
+import LastRenders from "./pages/LastRenders";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
                 <Route path="/text-to-video" element={<TextToVideo />} />
                 <Route path="/upload" element={<Upload />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/library" element={<LastRenders />} />
                 <Route path="/video/:videoId/clips" element={<VideoClips />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

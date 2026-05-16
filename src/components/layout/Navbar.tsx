@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Menu, X, LayoutDashboard, User } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Logo from "@/assets/Logo.svg";
+import LogoSingle from "@/assets/logo-single.svg";
 
 export function Navbar() {
   const { isAuthenticated, logout } = useAuth();
@@ -14,9 +14,9 @@ export function Navbar() {
 
   const navLinks = isAuthenticated
     ? [
-        { href: "/dashboard", label: "Studio", icon: LayoutDashboard },
-        { href: "/profile", label: "Profile", icon: User },
-      ]
+      { href: "/dashboard", label: "Studio", icon: LayoutDashboard },
+      { href: "/profile", label: "Profile", icon: User },
+    ]
     : [];
 
   const isActive = (path: string) => location.pathname === path;
@@ -26,7 +26,10 @@ export function Navbar() {
       <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 group">
-          <img src={Logo} alt="KlipperAI Logo" className="h-10 w-auto" />
+          <img src={LogoSingle} alt="AutoTube Logo" className="h-8 w-auto" />
+          <span className="text-xl tracking-tight text-foreground">
+            Auto<span style={{ color: "#549BEE" }}>Tube</span>
+          </span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -35,11 +38,10 @@ export function Navbar() {
             <Link
               key={link.href}
               to={link.href}
-              className={`flex items-center gap-2 text-sm font-medium transition-colors ${
-                isActive(link.href)
+              className={`flex items-center gap-2 text-sm font-medium transition-colors ${isActive(link.href)
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
-              }`}
+                }`}
             >
               <link.icon className="w-4 h-4" />
               {link.label}
@@ -51,7 +53,11 @@ export function Navbar() {
         <div className="hidden md:flex items-center gap-3">
           <ThemeToggle />
           {isAuthenticated ? (
-            <Button variant="ghost" onClick={logout}>
+            <Button 
+              variant="ghost" 
+              onClick={logout}
+              className="hover:bg-primary/10 hover:text-primary focus-visible:ring-0 focus-visible:ring-offset-0 border-none outline-none"
+            >
               Logout
             </Button>
           ) : (
@@ -94,18 +100,21 @@ export function Navbar() {
                   key={link.href}
                   to={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-2 p-3 rounded-lg transition-colors ${
-                    isActive(link.href)
+                  className={`flex items-center gap-2 p-3 rounded-lg transition-colors ${isActive(link.href)
                       ? "bg-primary/10 text-primary"
                       : "hover:bg-muted"
-                  }`}
+                    }`}
                 >
                   <link.icon className="w-5 h-5" />
                   {link.label}
                 </Link>
               ))}
               {isAuthenticated ? (
-                <Button variant="ghost" onClick={logout} className="justify-start">
+                <Button 
+                  variant="ghost" 
+                  onClick={logout} 
+                  className="justify-start hover:bg-primary/10 hover:text-primary focus-visible:ring-0 focus-visible:ring-offset-0 border-none outline-none"
+                >
                   Logout
                 </Button>
               ) : (
